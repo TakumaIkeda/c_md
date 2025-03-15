@@ -100,6 +100,63 @@ void calc_position(System *system, int rank, int size)
   return;
 }
 
+double calc_potential(System *system, int rank, int size)
+{
+  Atom *atoms = system->atoms;
+  double dx[3];
+  double eps = 1.0;
+  double sigma = 0.398; // nm
+  double sigma2 = sigma * sigma;
+  double sigma6 = sigma2 * sigma2 * sigma2;
+  double sigma12 = sigma6 * sigma6;
+  double potential = 0.0;
+
+  int start = rank * system->natoms / size;
+  int end = (rank == size - 1) ? system->natoms : (rank + 1) * system->natoms / size;
+
+  for (int i = start; i < end; i++)
+  {
+    for (int j = i + 1; j < system->natoms; j++)
+    {
+      pbc_dx(&atoms[i], &atoms[j], dx, system->box);
+      double r = norm(dx);
+      double r2 = r * r;
+      double r6 = r2 * r2 * r2;
+      double r12 = r6 * r6;
+
+      if (r < system->cut_off)
+      {
+        potential += 4 * eps * (sigma12 / r12 - sigma6 / r6);
+      }
+    }
+  }
+
+  MPI_Allreduce(MPI_IN_PLACE, &potential, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+  return potential;
+}
+
+double calc_kinetic(System *system)
+{
+  Atom *atoms = system->atoms;
+  double kinetic = 0.0;
+
+  for (int i = 0; i < system->natoms; i++)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      kinetic += 0.5 * atoms[i].p[j] * atoms[i].p[j];
+    }
+  }
+
+  return kinetic;
+}
+
+double calc_temperature(double kinetic, int natoms)
+{
+  return 2 * kinetic / (3 * natoms);
+}
+
 void run_md()
 {
   System system;
@@ -112,7 +169,6 @@ void run_md()
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   printf("MPI rank %d, size %d\n", rank, size);
 
-  // init system
   init_system(&system);
   calc_force(&system, rank, size);
   // run md
@@ -121,20 +177,31 @@ void run_md()
     calc_momentum(&system, rank, size);
     calc_position(&system, rank, size);
     calc_force(&system, rank, size);
+    calc_momentum(&system, rank, size);
+
     if (step % 100 == 0 && rank == 0)
     {
-      printf("Step %d\n", step);
+      printf("step %d\n", step);
     }
 
-    if (step % 10 == 0 && rank == 0)
+    if (step % 10 == 0)
     {
-      output_gro(&system, step + 1, system.f_trajectory);
+      double potential = calc_potential(&system, rank, size);
+      if (rank == 0)
+      {
+        double kinetic = calc_kinetic(&system);
+        double temperature = calc_temperature(kinetic, system.natoms);
+        fprintf(system.f_energy, "%d %f %f %f\n", step, potential, kinetic, potential + kinetic);
+        fprintf(system.f_temperature, "%d %f\n", step, temperature);
+        output_gro(&system, step, system.f_trajectory);
+      }
     }
   }
 
   // output results
   free(system.atoms);
   fclose(system.f_trajectory);
+  fclose(system.f_energy);
   MPI_Finalize();
 
   return;

@@ -14,6 +14,8 @@ typedef struct t_system
   double cut_off;
   Atom *atoms;
   FILE *f_trajectory;
+  FILE *f_energy;
+  FILE *f_temperature;
 } System;
 
 void init_system(System *system);
