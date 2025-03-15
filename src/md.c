@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "system.h"
 #include "utils.h"
 
@@ -81,25 +82,32 @@ void calc_position(System *system)
   return;
 }
 
-void run_md(System *system)
+void run_md()
 {
+  System system;
+  // system = (System *)malloc(sizeof(System));
+
   // init system
-  init_system(system);
-  calc_force(system);
+  init_system(&system);
+  calc_force(&system);
   // run md
-  for (int step = 0; step < system->nsteps; step++)
+  for (int step = 0; step < system.nsteps; step++)
   {
-    calc_momentum(system);
-    calc_position(system);
-    calc_force(system);
+    calc_momentum(&system);
+    calc_position(&system);
+    calc_force(&system);
     if (step % 10 == 0)
     {
       printf("Step %d\n", step);
-      output_gro(system, step, system->f_trajectory);
+      output_gro(&system, step, system.f_trajectory);
     }
   }
 
   // output results
+
+  free(system.atoms);
+  fclose(system.f_trajectory);
+  // free(system);
 
   return;
 }

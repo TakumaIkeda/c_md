@@ -3,7 +3,7 @@
 
 #include "system.h"
 
-void run_md(System *system);
+void run_md();
 void calc_momentum(System *system);
 void calc_position(System *system);
 

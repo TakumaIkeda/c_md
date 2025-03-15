@@ -13,7 +13,7 @@ OBJS = $(SRCS:.c=.o)
 
 # 実行ファイルの生成ルール
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) -lm -O3
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) -lm
 
 # オブジェクトファイルの生成ルール
 %.o: %.c

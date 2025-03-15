@@ -1,9 +1,21 @@
+#include <stdlib.h>
 #include "system.h"
 #include "utils.h"
 
 void init_system(System *system)
 {
+  system->box[0] = 4.2; // 4.2 nm
+  system->box[1] = 4.2; // 4.2 nm
+  system->box[2] = 4.2; // 4.2 nm
+  system->temperature = 300;
+  system->dt = 0.001; // 1 fs
+  system->nsteps = 1000;
+  system->natoms = 1000;
+  system->cut_off = 2.0; // 2.0 nm
+  system->atoms = (Atom *)malloc(system->natoms * sizeof(Atom));
+  system->f_trajectory = fopen("trajectory.gro", "w");
   Atom *atoms = system->atoms;
+
   double binx = system->box[0] / 10;
   double biny = system->box[1] / 10;
   double binz = system->box[2] / 10;
