@@ -1,4 +1,4 @@
-CC = clang
+CC = mpicc
 CFLAGS = -Wall -I./src
 TARGET = md
 

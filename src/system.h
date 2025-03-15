@@ -17,6 +17,5 @@ typedef struct t_system
 } System;
 
 void init_system(System *system);
-void calc_force(System *system);
 
 #endif
