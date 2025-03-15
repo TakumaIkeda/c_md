@@ -9,7 +9,7 @@ void init_system(System *system)
   system->box[2] = 4.2; // 4.2 nm
   system->temperature = 300;
   system->dt = 0.001; // 1 fs
-  system->nsteps = 1000;
+  system->nsteps = 10000;
   system->natoms = 1000;
   system->cut_off = 2.0; // 2.0 nm
   system->atoms = (Atom *)malloc(system->natoms * sizeof(Atom));

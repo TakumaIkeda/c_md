@@ -1,24 +1,15 @@
-# コンパイラ
-CC = gcc
-
-# コンパイラオプション
+CC = clang
 CFLAGS = -Wall -I./src
-
-# 実行ファイル名
 TARGET = md
 
-# ソースファイルとオブジェクトファイルのリスト
 SRCS = main.c $(wildcard src/*.c)
 OBJS = $(SRCS:.c=.o)
 
-# 実行ファイルの生成ルール
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) -lm
 
-# オブジェクトファイルの生成ルール
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# クリーンルール
 clean:
 	rm -f $(TARGET) $(OBJS)
